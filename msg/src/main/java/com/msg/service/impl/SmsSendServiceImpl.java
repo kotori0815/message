@@ -118,8 +118,7 @@ public class SmsSendServiceImpl implements SmsSendService {
             throw new MessageSendException(CodeConts.PARAM_LEGAL, "客户组id为空");
         }
         logger.info("--------添加客户组成员列表，客户组id为" + groupId + "----------");
-//        List<Customer> mktsmsCustomerGroupMembers = mktsmsCustomerGroupMemberMapper.selectMktsmsCustomerGroupMemberListByGroupId(groupId);
-        List<Customer> mktsmsCustomerGroupMembers = null;
+        List<Customer> mktsmsCustomerGroupMembers = mktsmsCustomerGroupMemberMapper.selectMktsmsCustomerGroupMemberListByGroupId(groupId);
         if (mktsmsCustomerGroupMembers == null) {
             throw new MessageSendException(CodeConts.MKTSMS_IS_NULL, "该id的客户组不存在");
         }

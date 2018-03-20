@@ -17,6 +17,8 @@ public class Customer implements Serializable{
 
     private String phone;
 
+    private String email;
+
     private Byte sex;
 
     private Integer source;
@@ -37,6 +39,14 @@ public class Customer implements Serializable{
 
     public Long getCustGroup() {
         return custGroup;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setCustGroup(Long custGroup) {

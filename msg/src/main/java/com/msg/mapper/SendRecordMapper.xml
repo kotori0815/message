@@ -155,7 +155,7 @@
         #{phone,jdbcType=VARCHAR},
       </if>
       <if test="email!=null">
-        email,
+        #{email,jdbcType=VARCHAR},
       </if>
       <if test="retry != null" >
         #{retry,jdbcType=INTEGER},
