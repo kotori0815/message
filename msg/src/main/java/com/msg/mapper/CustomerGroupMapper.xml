@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.msg.mapper.CustomerGroupMapper" >
-  <resultMap id="BaseResultMap" type="com.msg.entity.CustomerGroup">
+  <resultMap id="BaseResultMap" type="com.msg.entity.CustomerGroup" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
     <result column="memo" property="memo" jdbcType="VARCHAR" />
     <result column="create_id" property="createId" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -11,35 +13,119 @@
     <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
     <result column="valid" property="valid" jdbcType="INTEGER" />
   </resultMap>
+
+  <!--<resultMap id="CustomerGroupVOResultMap" type="com.mktsms.vo.CustomerGroupVO" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="memo" property="memo" jdbcType="VARCHAR" />
+    <result column="create_id" property="createId" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="modify_id" property="modifyId" jdbcType="VARCHAR" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+    <result column="members_count" property="membersCount" jdbcType="TIMESTAMP" />
+  </resultMap>-->
+
   <sql id="Base_Column_List" >
-    id, name, memo, create_id, create_time, modify_id, modify_time, valid
+    id, name, type, status, memo, create_id, create_time, modify_id, modify_time, valid
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from customer_group
+    from cust_group
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from customer_group
+  <select id="SelectGroupList" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from cust_group
+    where valid = 0
+    order by create_time DESC, id DESC
+  </select>
+  <select id="listCustomerGroupVOs" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from cust_group
+    where valid = 0
+    <if test="customerGroupId != null and customerGroupId != 0L">
+      and id = #{customerGroupId, jdbcType=BIGINT}
+    </if>
+    <if test="customerGroupName != null and customerGroupName != ''">
+      and name like CONCAT('%',#{customerGroupName},'%')
+    </if>
+    <if test="createId != null and createId != ''">
+      and create_id = #{create_id, jdbcType=VARCHAR}
+    </if>
+    <if test="customerGroupType != null and customerGroupType != ''">
+      and type = #{customerGroupType, jdbcType=INTEGER}
+    </if>
+    <if test="status != null and status != ''">
+      and status = #{status, jdbcType=INTEGER}
+    </if>
+    order by create_time DESC, id DESC
+  </select>
+  <!--<select id="listCustomerGroupWithMembersCount" resultMap="CustomerGroupVOResultMap">
+    SELECT
+    a.id,
+    a.name,
+    a.type,
+    a.status,
+    a.memo,
+    a.create_id,
+    a.create_time,
+    a.modify_id,
+    a.modify_time,
+    a.valid,
+    count(b.id) as members_count
+    FROM cust_group a LEFT JOIN cust_group_members b ON a.id = b.cust_group
+    where a.valid = 0
+    <if test="customerGroupId != null and customerGroupId != 0L">
+        and a.id = #{customerGroupId, jdbcType=BIGINT}
+    </if>
+    <if test="customerGroupName != null and customerGroupName != ''">
+        and a.name like CONCAT('%',#{customerGroupName},'%')
+    </if>
+    <if test="createId != null and createId != ''">
+        and a.create_id = #{createId, jdbcType=VARCHAR}
+    </if>
+    <if test="customerGroupType != null and customerGroupType != ''">
+        and a.type = #{customerGroupType, jdbcType=INTEGER}
+    </if>
+    <if test="status != null and status != ''">
+        and a.status = #{status, jdbcType=INTEGER}
+    </if>
+    GROUP BY a.id
+    order by a.create_time DESC, a.id DESC
+  </select>-->
+  <update id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    update cust_group set valid = 1
     where id = #{id,jdbcType=BIGINT}
-  </delete>
-  <insert id="insert" parameterType="com.msg.entity.CustomerGroup" >
-    insert into customer_group (id, name, memo, 
-      create_id, create_time, modify_id, 
-      modify_time, valid)
-    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{memo,jdbcType=VARCHAR}, 
-      #{createId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{modifyId,jdbcType=VARCHAR}, 
-      #{modifyTime,jdbcType=TIMESTAMP}, #{valid,jdbcType=INTEGER})
+  </update>
+  <insert id="insert" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+    insert into cust_group (id, name, type,
+      status, memo, create_id, 
+      create_time, modify_id, modify_time, 
+      valid)
+    values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, 
+      #{status,jdbcType=INTEGER}, #{memo,jdbcType=VARCHAR}, #{createId,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{modifyId,jdbcType=VARCHAR}, #{modifyTime,jdbcType=TIMESTAMP}, 
+      #{valid,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" parameterType="com.msg.entity.CustomerGroup" >
-    insert into customer_group
+  <insert id="insertSelective" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+    insert into cust_group
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
         id,
       </if>
       <if test="name != null" >
         name,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="status != null" >
+        status,
       </if>
       <if test="memo != null" >
         memo,
@@ -67,6 +153,12 @@
       <if test="name != null" >
         #{name,jdbcType=VARCHAR},
       </if>
+      <if test="type != null" >
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
       <if test="memo != null" >
         #{memo,jdbcType=VARCHAR},
       </if>
@@ -87,11 +179,17 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.CustomerGroup" >
-    update customer_group
+  <update id="updateByPrimaryKeySelective" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+    update cust_group
     <set >
       <if test="name != null" >
         name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
       </if>
       <if test="memo != null" >
         memo = #{memo,jdbcType=VARCHAR},
@@ -105,24 +203,33 @@
       <if test="modifyId != null" >
         modify_id = #{modifyId,jdbcType=VARCHAR},
       </if>
-      <if test="modifyTime != null" >
-        modify_time = #{modifyTime,jdbcType=TIMESTAMP},
-      </if>
       <if test="valid != null" >
         valid = #{valid,jdbcType=INTEGER},
       </if>
+      modify_time = now()
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.msg.entity.CustomerGroup" >
-    update customer_group
+  <update id="updateByPrimaryKey" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+    update cust_group
     set name = #{name,jdbcType=VARCHAR},
+      type = #{type,jdbcType=INTEGER},
+      status = #{status,jdbcType=INTEGER},
       memo = #{memo,jdbcType=VARCHAR},
       create_id = #{createId,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       modify_id = #{modifyId,jdbcType=VARCHAR},
-      modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+      modify_time = now(),
       valid = #{valid,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
+
+<!--去重用，组名不能重复-->
+  <select id="selectByGroupName" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from cust_group
+    where name = #{name,jdbcType=VARCHAR}
+    and valid = 0
+  </select>
 </mapper>

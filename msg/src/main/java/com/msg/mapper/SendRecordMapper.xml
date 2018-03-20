@@ -4,16 +4,21 @@
   <resultMap id="BaseResultMap" type="com.msg.entity.SendRecord" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="msg_id" property="msgId" jdbcType="BIGINT" />
-    <result column="cust_id" property="custId" jdbcType="BIGINT" />
+    <result column="cust_code" property="custCode" jdbcType="BIGINT" />
+    <result column="cust_type" property="custType" jdbcType="TINYINT" />
+    <result column="cust_name" property="custName" jdbcType="VARCHAR" />
+    <result column="sex" property="sex" jdbcType="TINYINT" />
     <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR"/>
+    <result column="retry" property="retry" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="ret_code" property="retCode" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="email" property="email" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Base_Column_List" >
-    id, msg_id, cust_id, phone, status, ret_code, create_time, update_time, email
+    id, msg_id, cust_code, cust_type, cust_name, sex, phone,email, retry, status, ret_code,
+    create_time, update_time
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
@@ -21,18 +26,67 @@
     from send_record
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+  <select id="selectSendCountBySmsId" resultType="java.lang.Integer">
+    select
+    count(id)
+    from send_record
+    where msg_id = #{smsId}
+  </select>
+  <select id="selectSendCountByStatus" resultType="java.lang.Integer">
+    select
+    count(id)
+    from send_record
+    where
+    msg_id = #{smsId}
+    and
+    status = #{sendStatus}
+  </select>
+  <select id="selectSendListBySmsId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from send_record
+    where msg_id = #{smsId,jdbcType=BIGINT}
+    order by status desc,
+    <choose>
+      <when test="sendWay != null and sendWay == 1">
+        cust_code desc,
+      </when>
+      <otherwise>
+        cust_code asc,
+      </otherwise>
+    </choose>
+    id asc
+  </select>
+    <select id="selectSendNumber" resultType="java.lang.Integer">
+      SELECT COUNT (*) from send_record WHERE msg_id=#{msgId}
+    </select>
+    <select id="selectPhoneBycustCode" resultType="java.lang.String">
+      select
+      phone
+      from send_record
+      where msg_id = #{mktsmsId} and id IN
+      <foreach collection="sendRecordIdList" item="item" index="index" open="(" close=")" separator=",">
+        #{item}
+      </foreach>
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from send_record
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.msg.entity.SendRecord" >
-    insert into send_record (id, msg_id, cust_id, 
-      phone, status, ret_code, 
-      create_time, update_time, email
+    <delete id="deleteBySmsId" parameterType="java.lang.Long">
+      delete from send_record
+    where msg_id = #{smsId}
+    </delete>
+    <insert id="insert" parameterType="com.msg.entity.SendRecord" >
+    insert into send_record (id, msg_id, cust_code,
+      cust_type, cust_name, sex, 
+      phone, retry, status, 
+      ret_code, create_time, update_time
       )
-    values (#{id,jdbcType=BIGINT}, #{msgId,jdbcType=BIGINT}, #{custId,jdbcType=BIGINT}, 
-      #{phone,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{retCode,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{email,jdbcType=VARCHAR}
+    values (#{id,jdbcType=BIGINT}, #{msgId,jdbcType=BIGINT}, #{custCode,jdbcType=BIGINT}, 
+      #{custType,jdbcType=TINYINT}, #{custName,jdbcType=VARCHAR}, #{sex,jdbcType=TINYINT}, 
+      #{phone,jdbcType=VARCHAR},#{email,jdbcType=VARCHAR}, #{retry,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+      #{retCode,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.msg.entity.SendRecord" >
@@ -44,11 +98,26 @@
       <if test="msgId != null" >
         msg_id,
       </if>
-      <if test="custId != null" >
-        cust_id,
+      <if test="custCode != null" >
+        cust_code,
+      </if>
+      <if test="custType != null" >
+        cust_type,
+      </if>
+      <if test="custName != null" >
+        cust_name,
+      </if>
+      <if test="sex != null" >
+        sex,
       </if>
       <if test="phone != null" >
         phone,
+      </if>
+      <if test="email!=null">
+        email,
+      </if>
+      <if test="retry != null" >
+        retry,
       </if>
       <if test="status != null" >
         status,
@@ -62,9 +131,6 @@
       <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="email != null" >
-        email,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -73,11 +139,26 @@
       <if test="msgId != null" >
         #{msgId,jdbcType=BIGINT},
       </if>
-      <if test="custId != null" >
-        #{custId,jdbcType=BIGINT},
+      <if test="custCode != null" >
+        #{custCode,jdbcType=BIGINT},
+      </if>
+      <if test="custType != null" >
+        #{custType,jdbcType=TINYINT},
+      </if>
+      <if test="custName != null" >
+        #{custName,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        #{sex,jdbcType=TINYINT},
       </if>
       <if test="phone != null" >
         #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="email!=null">
+        email,
+      </if>
+      <if test="retry != null" >
+        #{retry,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -91,22 +172,50 @@
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="email != null" >
-        #{email,jdbcType=VARCHAR},
-      </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.SendRecord" >
+    <insert id="insertSendRecord" parameterType="java.util.List">
+      insert into send_record (id,msg_id,cust_code,cust_type,cust_name,sex,phone,retry,create_time)
+       VALUES
+       <foreach collection="list" item="record" separator=",">
+         (#{record.id},
+         #{record.msgId},
+         #{record.custCode},
+         #{record.custType},
+         #{record.custName},
+         #{record.sex},
+         #{record.phone},
+         #{record.email},
+         0,
+         sysdate())
+       </foreach>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.SendRecord" >
     update send_record
     <set >
       <if test="msgId != null" >
         msg_id = #{msgId,jdbcType=BIGINT},
       </if>
-      <if test="custId != null" >
-        cust_id = #{custId,jdbcType=BIGINT},
+      <if test="custCode != null" >
+        cust_code = #{custCode,jdbcType=BIGINT},
+      </if>
+      <if test="custType != null" >
+        cust_type = #{custType,jdbcType=TINYINT},
+      </if>
+      <if test="custName != null" >
+        cust_name = #{custName,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        sex = #{sex,jdbcType=TINYINT},
       </if>
       <if test="phone != null" >
         phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="email!=null">
+        email=#{email,jdbcType=VARCHAR},
+      </if>
+      <if test="retry != null" >
+        retry = #{retry,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         status = #{status,jdbcType=INTEGER},
@@ -117,25 +226,44 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="email != null" >
-        email = #{email,jdbcType=VARCHAR},
-      </if>
+        update_time = now()
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.msg.entity.SendRecord" >
     update send_record
     set msg_id = #{msgId,jdbcType=BIGINT},
-      cust_id = #{custId,jdbcType=BIGINT},
+      cust_code = #{custCode,jdbcType=BIGINT},
+      cust_type = #{custType,jdbcType=TINYINT},
+      cust_name = #{custName,jdbcType=VARCHAR},
+      sex = #{sex,jdbcType=TINYINT},
       phone = #{phone,jdbcType=VARCHAR},
+       email=#{email,jdbcType=VARCHAR},
+      retry = #{retry,jdbcType=INTEGER},
       status = #{status,jdbcType=INTEGER},
       ret_code = #{retCode,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      email = #{email,jdbcType=VARCHAR}
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
+    <update id="updateRetry">
+      update send_record
+    set retry = retry + 1,update_time = #{updateTime},status = #{status}
+    where id = #{sendRecordId}
+    </update>
+  <update id="updateSendStatus">
+    update send_record
+    set status = #{status,jdbcType=INTEGER},
+     ret_code = #{retCode,jdbcType=VARCHAR}
+    where msg_id = #{smsId,jdbcType=BIGINT}
+    and phone = #{phone}
+    <if test="email!=null">
+  and email=#{email,jdbcType=VARCHAR},,
+    </if>
+  </update>
+    <update id="updateSendRecordStatusByMegId">
+       update send_record
+    set status = #{status,jdbcType=INTEGER}
+    where msg_id = #{msgId,jdbcType=BIGINT}
+    </update>
 </mapper>

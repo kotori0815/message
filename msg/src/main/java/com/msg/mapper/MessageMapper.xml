@@ -3,58 +3,107 @@
 <mapper namespace="com.msg.mapper.MessageMapper" >
   <resultMap id="BaseResultMap" type="com.msg.entity.Message" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="sign" property="sign" jdbcType="BIGINT" />
     <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="send_way" property="sendWay" jdbcType="INTEGER" />
     <result column="cust_group" property="custGroup" jdbcType="BIGINT" />
+    <result column="data_file" property="dataFile" jdbcType="VARCHAR" />
     <result column="phone_num" property="phoneNum" jdbcType="INTEGER" />
     <result column="memo" property="memo" jdbcType="VARCHAR" />
     <result column="create_id" property="createId" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="modify_id" property="modifyId" jdbcType="VARCHAR" />
     <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
     <result column="approval_id" property="approvalId" jdbcType="VARCHAR" />
     <result column="approval_time" property="approvalTime" jdbcType="TIMESTAMP" />
     <result column="reason" property="reason" jdbcType="VARCHAR" />
   </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.msg.entity.Message" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
   <sql id="Base_Column_List" >
-    id, content, status, cust_group, phone_num, memo, create_id, create_time, modify_time, 
-    approval_id, approval_time, reason
+    id, sign, status, send_way, cust_group, data_file, phone_num, memo, create_id, create_time, 
+    modify_id, modify_time, approval_id, approval_time, reason
   </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from message
     where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectMessageApproveList" resultMap="ResultMapWithBLOBs">
+    SELECT <include refid="Base_Column_List" />,<include refid="Blob_Column_List"/>
+    FROM message
+    <where>
+      status=#{status,jdbcType=VARCHAR}
+      <if test="messageId != null" >
+        and id =#{messageId}
+      </if>
+      <if test="submitStartTime != null">
+        <![CDATA[ and DATE_FORMAT(modify_time, '%Y-%m-%d') >=DATE_FORMAT(#{submitStartTime}, '%Y-%m-%d')  ]]>
+      </if>
+      <if test="submitEndTime != null">
+        <![CDATA[ and DATE_FORMAT(modify_time, '%Y-%m-%d') <=DATE_FORMAT(#{submitEndTime}, '%Y-%m-%d')]]>
+      </if>
+      <if test="approveStartTime != null">
+        <![CDATA[ and  DATE_FORMAT(approval_time, '%Y-%m-%d') >=DATE_FORMAT( #{approveStartTime}, '%Y-%m-%d') ]]>
+      </if>
+      <if test="approveEndTime != null">
+        <![CDATA[ and  DATE_FORMAT(approval_time, '%Y-%m-%d') <=DATE_FORMAT( #{approveEndTime}, '%Y-%m-%d') ]]>
+      </if>
+    </where>
+    <choose>
+      <when test="status != null and status == 1">
+        ORDER BY modify_time DESC
+      </when>
+      <otherwise>
+        ORDER BY approval_time DESC
+      </otherwise>
+    </choose>
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from message
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.msg.entity.Message" >
-    insert into message (id, content, status, 
-      cust_group, phone_num, memo, 
-      create_id, create_time, modify_time, 
-      approval_id, approval_time, reason
-      )
-    values (#{id,jdbcType=BIGINT}, #{content,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
-      #{custGroup,jdbcType=BIGINT}, #{phoneNum,jdbcType=INTEGER}, #{memo,jdbcType=VARCHAR}, 
-      #{createId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{modifyTime,jdbcType=TIMESTAMP}, 
-      #{approvalId,jdbcType=VARCHAR}, #{approvalTime,jdbcType=TIMESTAMP}, #{reason,jdbcType=VARCHAR}
-      )
+  <insert id="insert" parameterType="com.msg.entity.MktsmsMessage" >
+    insert into message (id, sign, status,
+      send_way, cust_group, data_file, 
+      phone_num, memo, create_id, 
+      create_time, modify_id, modify_time, 
+      approval_id, approval_time, reason, 
+      content)
+    values (#{id,jdbcType=BIGINT}, #{sign,jdbcType=BIGINT}, #{status,jdbcType=VARCHAR}, 
+      #{sendWay,jdbcType=INTEGER}, #{custGroup,jdbcType=BIGINT}, #{dataFile,jdbcType=VARCHAR}, 
+      #{phoneNum,jdbcType=INTEGER}, #{memo,jdbcType=VARCHAR}, #{createId,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{modifyId,jdbcType=VARCHAR}, #{modifyTime,jdbcType=TIMESTAMP}, 
+      #{approvalId,jdbcType=VARCHAR}, #{approvalTime,jdbcType=TIMESTAMP}, #{reason,jdbcType=VARCHAR}, 
+      #{content,jdbcType=LONGVARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.msg.entity.Message" >
+  <insert id="insertSelective" parameterType="com.msg.entity.MktsmsMessage" >
     insert into message
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
         id,
       </if>
-      <if test="content != null" >
-        content,
+      <if test="sign != null" >
+        sign,
       </if>
       <if test="status != null" >
         status,
       </if>
+      <if test="sendWay != null" >
+        send_way,
+      </if>
       <if test="custGroup != null" >
         cust_group,
+      </if>
+      <if test="dataFile != null" >
+        data_file,
       </if>
       <if test="phoneNum != null" >
         phone_num,
@@ -65,8 +114,9 @@
       <if test="createId != null" >
         create_id,
       </if>
-      <if test="createTime != null" >
         create_time,
+      <if test="modifyId != null" >
+        modify_id,
       </if>
       <if test="modifyTime != null" >
         modify_time,
@@ -80,19 +130,28 @@
       <if test="reason != null" >
         reason,
       </if>
+      <if test="content != null" >
+        content,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
         #{id,jdbcType=BIGINT},
       </if>
-      <if test="content != null" >
-        #{content,jdbcType=VARCHAR},
+      <if test="sign != null" >
+        #{sign,jdbcType=BIGINT},
       </if>
       <if test="status != null" >
         #{status,jdbcType=VARCHAR},
       </if>
+      <if test="sendWay != null" >
+        #{sendWay,jdbcType=INTEGER},
+      </if>
       <if test="custGroup != null" >
         #{custGroup,jdbcType=BIGINT},
+      </if>
+      <if test="dataFile != null" >
+        #{dataFile,jdbcType=VARCHAR},
       </if>
       <if test="phoneNum != null" >
         #{phoneNum,jdbcType=INTEGER},
@@ -106,6 +165,9 @@
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="modifyId != null" >
+        #{modifyId,jdbcType=VARCHAR},
+      </if>
       <if test="modifyTime != null" >
         #{modifyTime,jdbcType=TIMESTAMP},
       </if>
@@ -118,19 +180,28 @@
       <if test="reason != null" >
         #{reason,jdbcType=VARCHAR},
       </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.Message" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.MktsmsMessage" >
     update message
     <set >
-      <if test="content != null" >
-        content = #{content,jdbcType=VARCHAR},
+      <if test="sign != null" >
+        sign = #{sign,jdbcType=BIGINT},
       </if>
       <if test="status != null" >
         status = #{status,jdbcType=VARCHAR},
       </if>
+      <if test="sendWay != null" >
+        send_way = #{sendWay,jdbcType=INTEGER},
+      </if>
       <if test="custGroup != null" >
         cust_group = #{custGroup,jdbcType=BIGINT},
+      </if>
+      <if test="dataFile != null" >
+        data_file = #{dataFile,jdbcType=VARCHAR},
       </if>
       <if test="phoneNum != null" >
         phone_num = #{phoneNum,jdbcType=INTEGER},
@@ -144,6 +215,9 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="modifyId != null" >
+        modify_id = #{modifyId,jdbcType=VARCHAR},
+      </if>
       <if test="modifyTime != null" >
         modify_time = #{modifyTime,jdbcType=TIMESTAMP},
       </if>
@@ -156,22 +230,118 @@
       <if test="reason != null" >
         reason = #{reason,jdbcType=VARCHAR},
       </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.msg.entity.Message" >
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.msg.entity.MktsmsMessage" >
     update message
-    set content = #{content,jdbcType=VARCHAR},
+    set sign = #{sign,jdbcType=BIGINT},
       status = #{status,jdbcType=VARCHAR},
+      send_way = #{sendWay,jdbcType=INTEGER},
       cust_group = #{custGroup,jdbcType=BIGINT},
+      data_file = #{dataFile,jdbcType=VARCHAR},
       phone_num = #{phoneNum,jdbcType=INTEGER},
       memo = #{memo,jdbcType=VARCHAR},
       create_id = #{createId,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
+      modify_id = #{modifyId,jdbcType=VARCHAR},
+      modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+      approval_id = #{approvalId,jdbcType=VARCHAR},
+      approval_time = #{approvalTime,jdbcType=TIMESTAMP},
+      reason = #{reason,jdbcType=VARCHAR},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.msg.entity.MktsmsMessage" >
+    update message
+    set sign = #{sign,jdbcType=BIGINT},
+      status = #{status,jdbcType=VARCHAR},
+      send_way = #{sendWay,jdbcType=INTEGER},
+      cust_group = #{custGroup,jdbcType=BIGINT},
+      data_file = #{dataFile,jdbcType=VARCHAR},
+      phone_num = #{phoneNum,jdbcType=INTEGER},
+      memo = #{memo,jdbcType=VARCHAR},
+      create_id = #{createId,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      modify_id = #{modifyId,jdbcType=VARCHAR},
       modify_time = #{modifyTime,jdbcType=TIMESTAMP},
       approval_id = #{approvalId,jdbcType=VARCHAR},
       approval_time = #{approvalTime,jdbcType=TIMESTAMP},
       reason = #{reason,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
+  <update id="updateMktSmsApproveById">
+     update message
+    set status = 1,
+    modify_id = #{modifyId},
+    modify_time = #{modifyTime}
+    where id=#{smsId}
+  </update>
+  <update id="updateDataFileById">
+    update message
+    set data_file = #{dataFile,jdbcType=VARCHAR}
+      where id=#{smsId}
+  </update>
+
+  <select id="selectMktSmsAll" resultMap="ResultMapWithBLOBs">
+    select
+    <include refid="Base_Column_List"/>,
+    <include refid="Blob_Column_List"/>
+    from message
+    <where>
+      status = #{smsStatus,jdbcType=VARCHAR}
+      <if test="createId!=null and createId!=''">
+        AND create_id = #{createId}
+      </if>
+      <if test="smsId!=null and smsId!=''">
+        AND id=#{smsId}
+      </if>
+      <if test="saveTimeStart != null">
+        <![CDATA[ and Date(create_time) >= #{saveTimeStart}]]>
+      </if>
+      <if test="saveTimeEnd != null">
+        <![CDATA[ and Date(create_time) <= #{saveTimeEnd}]]>
+      </if>
+      <if test="submitTimeStart != null">
+        <![CDATA[ and Date(modify_time) >= #{submitTimeStart} ]]>
+      </if>
+      <if test="submitTimeEnd != null">
+        <![CDATA[ and Date(modify_time) <= #{submitTimeEnd} ]]>
+      </if>
+      <if test="approvalTimeStart != null">
+        <![CDATA[ and  Date(approvalTime)>= #{approvalTimeStart}]]>
+      </if>
+      <if test="approvalTimeEnd != null">
+        <![CDATA[ and Date(approvalTime) <= #{approvalTimeEnd}]]>
+      </if>
+    </where>
+    <choose>
+      <when test="smsStatus != null and smsStatus == 0">
+        ORDER BY create_time DESC
+      </when>
+      <when test="smsStatus != null and smsStatus == 3">
+        ORDER BY approval_time DESC
+      </when>
+      <otherwise>
+        ORDER BY modify_time DESC
+      </otherwise>
+    </choose>
+  </select>
+    <select id="selectCountByStatus" resultType="java.lang.Integer">
+      select
+      count(id)
+      from message
+      <where>
+        1 = 1
+        <if test="createId !=null and createId !=''">
+          and create_id = #{createId}
+        </if>
+        <if test="status !=null and status !=''">
+          and status = #{status}
+        </if>
+      </where>
+    </select>
 </mapper>

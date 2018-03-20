@@ -1,11 +1,17 @@
 package com.msg.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class CustomerGroup {
+public class CustomerGroup implements Serializable{
+    private static final long serialVersionUID = 5214351885639171780L;
     private Long id;
 
     private String name;
+
+    private Integer type;
+
+    private Integer status;
 
     private String memo;
 
@@ -33,6 +39,22 @@ public class CustomerGroup {
 
     public void setName(String name) {
         this.name = name == null ? null : name.trim();
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public String getMemo() {
