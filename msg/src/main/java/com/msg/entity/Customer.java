@@ -1,21 +1,31 @@
 package com.msg.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Customer {
+public class Customer implements Serializable{
+    private static final long serialVersionUID = 5716579353487548758L;
     private Long id;
+
+    private Long custGroup;
+
+    private Long custCode;
+
+    private Byte custType;
 
     private String custName;
 
     private String phone;
 
-    private String email;
+    private Byte sex;
 
-    private String sex;
+    private Integer source;
+
+    private String createId;
 
     private Date createTime;
 
-    private String createId;
+    private Integer valid;
 
     public Long getId() {
         return id;
@@ -23,6 +33,30 @@ public class Customer {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getCustGroup() {
+        return custGroup;
+    }
+
+    public void setCustGroup(Long custGroup) {
+        this.custGroup = custGroup;
+    }
+
+    public Long getCustCode() {
+        return custCode;
+    }
+
+    public void setCustCode(Long custCode) {
+        this.custCode = custCode;
+    }
+
+    public Byte getCustType() {
+        return custType;
+    }
+
+    public void setCustType(Byte custType) {
+        this.custType = custType;
     }
 
     public String getCustName() {
@@ -41,20 +75,28 @@ public class Customer {
         this.phone = phone == null ? null : phone.trim();
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email == null ? null : email.trim();
-    }
-
-    public String getSex() {
+    public Byte getSex() {
         return sex;
     }
 
-    public void setSex(String sex) {
-        this.sex = sex == null ? null : sex.trim();
+    public void setSex(Byte sex) {
+        this.sex = sex;
+    }
+
+    public Integer getSource() {
+        return source;
+    }
+
+    public void setSource(Integer source) {
+        this.source = source;
+    }
+
+    public String getCreateId() {
+        return createId;
+    }
+
+    public void setCreateId(String createId) {
+        this.createId = createId == null ? null : createId.trim();
     }
 
     public Date getCreateTime() {
@@ -65,11 +107,11 @@ public class Customer {
         this.createTime = createTime;
     }
 
-    public String getCreateId() {
-        return createId;
+    public Integer getValid() {
+        return valid;
     }
 
-    public void setCreateId(String createId) {
-        this.createId = createId == null ? null : createId.trim();
+    public void setValid(Integer valid) {
+        this.valid = valid;
     }
 }
