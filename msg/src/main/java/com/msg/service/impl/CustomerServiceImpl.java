@@ -4,14 +4,19 @@ import com.msg.entity.Customer;
 import com.msg.mapper.CustomerMapper;
 import com.msg.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
  * Created by wd199 on 2018/3/20.
  */
+@Service("customerService")
+@Transactional
 public class CustomerServiceImpl implements CustomerService {
-    @Autowired
+    @Resource(name="customerMapper")
     private CustomerMapper customerMapper;
     @Override
     public Integer createCustomer(Customer record) {

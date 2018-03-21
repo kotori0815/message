@@ -13,7 +13,10 @@ import com.msg.service.SmsSendService;
 import com.msg.util.PhoneNumUtil;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -21,18 +24,20 @@ import java.util.*;
 /**
  * Created by wd on 2017/10/26.
  */
+@Service("smsSendService")
+@Transactional
 public class SmsSendServiceImpl implements SmsSendService {
     private Logger logger = Logger.getLogger(SmsSendServiceImpl.class);
 
-    @Autowired
-    private CustomerMapper mktsmsCustomerGroupMemberMapper;
+    @Resource(name="customerMapper")
+    private CustomerMapper customerMapper;
 
-    @Autowired
-    private SendRecordMapper mktsmsSendRecordMapper;
+    @Resource(name="sendRecordMapper")
+    private SendRecordMapper sendRecordMapper;
 
 
-    @Autowired
-    private MessageMapper mktsmsMessageMapper;
+    @Resource(name="messageMapper")
+    private MessageMapper messageMapper;
 
 
     /**
@@ -64,7 +69,7 @@ public class SmsSendServiceImpl implements SmsSendService {
             mktsmsMessage.setPhoneNum(records.size());
             integer = insertMktsmsSendRecordList(records, mktsmsMessage.getId());
         }
-        int insert = mktsmsMessageMapper.insertSelective(mktsmsMessage);
+        int insert = messageMapper.insertSelective(mktsmsMessage);
         if (insert != 1) {
             throw new MessageSendException(CodeConts.FAILURE, "客户组发送营销短信方式，创建/发送失败");
         }
@@ -93,7 +98,7 @@ public class SmsSendServiceImpl implements SmsSendService {
             mktsmsMessage.setModifyId(mktsmsMessage.getCreateId());
         }
         mktsmsMessage.setSendWay(2);
-        int insert = mktsmsMessageMapper.insertSelective(mktsmsMessage);
+        int insert = messageMapper.insertSelective(mktsmsMessage);
         if (insert != 1) {
             throw new MessageSendException(CodeConts.FAILURE, "上传文件发送营销短信方式，创建/发送失败");
         }
@@ -118,7 +123,7 @@ public class SmsSendServiceImpl implements SmsSendService {
             throw new MessageSendException(CodeConts.PARAM_LEGAL, "客户组id为空");
         }
         logger.info("--------添加客户组成员列表，客户组id为" + groupId + "----------");
-        List<Customer> mktsmsCustomerGroupMembers = mktsmsCustomerGroupMemberMapper.selectMktsmsCustomerGroupMemberListByGroupId(groupId);
+        List<Customer> mktsmsCustomerGroupMembers = customerMapper.selectMktsmsCustomerGroupMemberListByGroupId(groupId);
         if (mktsmsCustomerGroupMembers == null) {
             throw new MessageSendException(CodeConts.MKTSMS_IS_NULL, "该id的客户组不存在");
         }
@@ -276,7 +281,7 @@ public class SmsSendServiceImpl implements SmsSendService {
 
                         Integer integer = null;
                         try {
-                            integer = mktsmsSendRecordMapper.insertSendRecord(list);
+                            integer = sendRecordMapper.insertSendRecord(list);
                         } catch (Exception e) {
                             e.printStackTrace();
                             throw new MessageSendException(CodeConts.PARAM_LEGAL,"文件内容或格式不符");
@@ -298,7 +303,7 @@ public class SmsSendServiceImpl implements SmsSendService {
 
                     Integer integer = null;
                     try {
-                        integer = mktsmsSendRecordMapper.insertSendRecord(list);
+                        integer = sendRecordMapper.insertSendRecord(list);
                     } catch (Exception e) {
                         e.printStackTrace();
                         throw new MessageSendException(CodeConts.PARAM_LEGAL,"文件内容或格式不符");

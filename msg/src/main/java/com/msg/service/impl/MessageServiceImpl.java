@@ -17,25 +17,30 @@ import com.msg.util.PhoneNumUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 /**
  * 营销短信消息实现类
  *
  */
+@Service("messageService")
+@Transactional
 public class MessageServiceImpl implements MessageService {
     private Logger logger=Logger.getLogger(MessageServiceImpl.class);
-    @Autowired
-    private MessageMapper mktsmsMessageMapper;
+    @Resource(name="messageMapper")
+    private MessageMapper messageMapper;
 
-    @Autowired
-    private CustomerGroupMapper mktsmsCustomerGroupMapper;
-    @Autowired
-    private CustomerMapper mktsmsCustomerGroupMemberMapper;
-    @Autowired
-    private SendRecordMapper mktsmsSendRecordMapper;
+    @Resource(name="customerGroupMapper")
+    private CustomerGroupMapper customerGroupMapper;
+    @Resource(name="customerMapper")
+    private CustomerMapper customerMapper;
+    @Resource(name="sendRecordMapper")
+    private SendRecordMapper sendRecordMapper;
 
 
     /**
@@ -59,7 +64,7 @@ public class MessageServiceImpl implements MessageService {
 
         PageHelper.startPage(pageStart,pageSize,true,null,true);
 
-        List<Message> mktsmsMessageList = mktsmsMessageMapper.selectMktSmsAll(smsStatus,createId,smsId,saveTimeStart,saveTimeEnd,submitTimeStart,submitTimeEnd,null,null);
+        List<Message> mktsmsMessageList = messageMapper.selectMktSmsAll(smsStatus,createId,smsId,saveTimeStart,saveTimeEnd,submitTimeStart,submitTimeEnd,null,null);
 
 
         logger.info("--------获取营销短信创建人、提交人、短信签名、客户组----------");
@@ -77,7 +82,7 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------获取营销短信详情开始----------");
         logger.info("--------营销短信，短信id："+smsId+"----------");
 
-        Message mktsmsMessage=mktsmsMessageMapper.selectByPrimaryKey(smsId);
+        Message mktsmsMessage=messageMapper.selectByPrimaryKey(smsId);
 
         if(mktsmsMessage == null){
             logger.info("--------营销短信不存在----------");
@@ -97,7 +102,7 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------删除营销短信开始----------");
         logger.info("--------营销短信，短信id："+smsId+"----------");
 
-        Message mktsmsMessage = mktsmsMessageMapper.selectByPrimaryKey(smsId);
+        Message mktsmsMessage = messageMapper.selectByPrimaryKey(smsId);
         if(mktsmsMessage == null){
             logger.info("--------营销短信不存在----------");
             throw new MessageSendException(CodeConts.MKTSMS_IS_NULL,"营销短信不存在");
@@ -111,10 +116,10 @@ public class MessageServiceImpl implements MessageService {
             throw new MessageSendException(CodeConts.Del_IS_APPROVE,"营销短信状态为审核通过，不能删除");
         }
         logger.info("--------删除营销短信发送记录开始----------");
-        int num1 = mktsmsSendRecordMapper.deleteBySmsId(smsId);
+        int num1 = sendRecordMapper.deleteBySmsId(smsId);
         logger.info("--------删除营销短信发送记录，删除了"+num1+"条----------");
         logger.info("--------删除营销短信发送记录结束----------");
-        int num = mktsmsMessageMapper.deleteByPrimaryKey(smsId);
+        int num = messageMapper.deleteByPrimaryKey(smsId);
         logger.info("--------删除营销短信结束----------");
         return num;
     }
@@ -129,7 +134,7 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------营销短信提交审核开始----------");
         logger.info("--------营销短信，短信id："+smsId+"----------");
 
-        Message mktsmsMessage = mktsmsMessageMapper.selectByPrimaryKey(smsId);
+        Message mktsmsMessage = messageMapper.selectByPrimaryKey(smsId);
 
         if(mktsmsMessage == null){
             logger.info("--------营销短信不存在----------");
@@ -148,7 +153,7 @@ public class MessageServiceImpl implements MessageService {
             throw new MessageSendException(CodeConts.APPROVE_IS_FAILURE,"营销短信已经审核驳回");
         }
         Date date =new Date();
-        int num = mktsmsMessageMapper.updateMktSmsApproveById(smsId,modifyId,date);
+        int num = messageMapper.updateMktSmsApproveById(smsId,modifyId,date);
 
         logger.info("--------营销短信提交审核结束----------");
         return num;
@@ -166,7 +171,7 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------营销短信，短信id："+mktsmsMessage.getId()+"----------");
         Map<String,Object> map = new HashMap<>();
         //查询未修改信息
-        Message mktsmsMessageFormer = mktsmsMessageMapper.selectByPrimaryKey(mktsmsMessage.getId());
+        Message mktsmsMessageFormer = messageMapper.selectByPrimaryKey(mktsmsMessage.getId());
         if(mktsmsMessageFormer.getStatus().equals("1")){
             logger.info("--------营销短信状态为待审核，不能编辑----------");
             throw new MessageSendException(CodeConts.APPROVE_TO_APPROVE,"营销短信状态为待审核，不能编辑");
@@ -184,17 +189,17 @@ public class MessageServiceImpl implements MessageService {
         int dele=0;
         logger.info("--------营销短信编辑修改客户组----------");
         //修改客户组，删除营销短信记录
-        dele = mktsmsSendRecordMapper.deleteBySmsId(mktsmsMessage.getId());
+        dele = sendRecordMapper.deleteBySmsId(mktsmsMessage.getId());
         logger.info("--------删除发送记录，删除了："+dele+"条数据----------营销短信id："+mktsmsMessage.getId()+"----------");
         //修改营销短信记录
         map = selectGroupMemberByGroupId(mktsmsMessage.getCustGroup(),mktsmsMessage.getId(),distinct,wrong);
 
-        int phoneNum = mktsmsSendRecordMapper.selectSendCountBySmsId(mktsmsMessage.getId());
+        int phoneNum = sendRecordMapper.selectSendCountBySmsId(mktsmsMessage.getId());
         //修改后的手机个数
         mktsmsMessage.setPhoneNum(phoneNum);
 
         //编辑短信
-        num = mktsmsMessageMapper.updateByPrimaryKeySelective(mktsmsMessage);
+        num = messageMapper.updateByPrimaryKeySelective(mktsmsMessage);
         map.put("update",num);
         logger.info("--------营销短信（选择）编辑结束----------");
         return map;
@@ -211,15 +216,15 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------营销短信，短信id："+mktsmsMessage.getId()+"----------");
         Map<String,Object> map = new HashMap<>();
         //获取相关短信的发送记录
-        int num = mktsmsSendRecordMapper.selectSendCountBySmsId(mktsmsMessage.getId());
-        Message mktsmsMessage1 = mktsmsMessageMapper.selectByPrimaryKey(mktsmsMessage.getId());
+        int num = sendRecordMapper.selectSendCountBySmsId(mktsmsMessage.getId());
+        Message mktsmsMessage1 = messageMapper.selectByPrimaryKey(mktsmsMessage.getId());
         int num1=0;//修改数量
         try{
             //根据记录总数判断是否修改录入文件
             if(mktsmsSendRecordList != null && mktsmsSendRecordList.size()>0){
                 logger.info("--------营销短信（录入）编辑修改录入文件----------");
                 //修改客户组，删除营销短信记录
-                int dele = mktsmsSendRecordMapper.deleteBySmsId(mktsmsMessage.getId());
+                int dele = sendRecordMapper.deleteBySmsId(mktsmsMessage.getId());
                 logger.info("--------删除发送记录，删除了："+dele+"条数据----------营销短信id："+mktsmsMessage.getId()+"----------");
                 List<SendRecord> mktsmsSendRecordListNew = new ArrayList<>();
                 //文件数量大小
@@ -271,7 +276,7 @@ public class MessageServiceImpl implements MessageService {
                         mktsmsSendRecord.setCreateTime(date);//创建时间
                     }
 
-                    insertNum += mktsmsSendRecordMapper.insertSendRecord(sendRecords);
+                    insertNum += sendRecordMapper.insertSendRecord(sendRecords);
 
                     logger.info("--------营销短信编辑（录入）添加发送记录第"+index+"轮，添加了"+insertNum+"条数据----------");
                     if(insertNum != sendRecords.size()){
@@ -295,7 +300,7 @@ public class MessageServiceImpl implements MessageService {
                     logger.info("--------营销短信编辑（录入）添加发送记录与文件解析记录数量不符----------");
                 }
                 //手机个数
-                int phoneNum = mktsmsSendRecordMapper.selectSendCountBySmsId(mktsmsMessage.getId());
+                int phoneNum = sendRecordMapper.selectSendCountBySmsId(mktsmsMessage.getId());
                 mktsmsMessage.setPhoneNum(phoneNum);
 
                 logger.info("添加录入文件成员，去错:"+wrongNum+"条");
@@ -310,7 +315,7 @@ public class MessageServiceImpl implements MessageService {
                 mktsmsMessage.setModifyTime(date);
             }
 
-            num1 = mktsmsMessageMapper.updateByPrimaryKeySelective(mktsmsMessage);
+            num1 = messageMapper.updateByPrimaryKeySelective(mktsmsMessage);
             map.put("update",num1);
         }catch (MessageSendException e){
             logger.error("--------营销短信（录入）编辑异常"+e.getMessage()+"----------");
@@ -337,10 +342,10 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------获取营销短信发送客户开始----------");
         logger.info("--------营销短信，短信id："+smsId+"----------");
 
-        Message mktsmsMessage = mktsmsMessageMapper.selectByPrimaryKey(smsId);
+        Message mktsmsMessage = messageMapper.selectByPrimaryKey(smsId);
         PageHelper.startPage(pageStart,pageSize,true,null,true);
 
-        List<SendRecord> mktsmsSendRecordList = mktsmsSendRecordMapper.selectSendListBySmsId(smsId,mktsmsMessage.getSendWay());
+        List<SendRecord> mktsmsSendRecordList = sendRecordMapper.selectSendListBySmsId(smsId,mktsmsMessage.getSendWay());
         //手机号脱敏
         for(SendRecord mktsmsSendRecord:mktsmsSendRecordList){
             String phone=mktsmsSendRecord.getPhone().replaceAll("(\\d{3})\\d{4}(\\d{4})","$1****$2");
@@ -380,7 +385,7 @@ public class MessageServiceImpl implements MessageService {
 
         PageHelper.startPage(pageStart,pageSize,true,null,true);
 
-        List<Customer> mktsmsCustomerGroupMemberList = mktsmsCustomerGroupMemberMapper.selectMktsmsCustomerGroupMemberListByGroupId(groupId);
+        List<Customer> mktsmsCustomerGroupMemberList = customerMapper.selectMktsmsCustomerGroupMemberListByGroupId(groupId);
 
         logger.info("--------获取客户组成员，手机号脱敏----------");
         //手机号脱敏
@@ -416,7 +421,7 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     public List<CustomerGroup> selectMktsmsCustomerGroupList() {
-        return mktsmsCustomerGroupMapper.SelectGroupList();
+        return customerGroupMapper.SelectGroupList();
     }
 
 
@@ -430,7 +435,7 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------删除营销短信发送记录开始----------");
         logger.info("--------营销短信，短信id："+smsId+"----------");
 
-        Message mktsmsMessage = mktsmsMessageMapper.selectByPrimaryKey(smsId);
+        Message mktsmsMessage = messageMapper.selectByPrimaryKey(smsId);
 
         if(mktsmsMessage == null){
             logger.info("--------营销短信不存在----------");
@@ -444,7 +449,7 @@ public class MessageServiceImpl implements MessageService {
             logger.info("----------营销短信状态为待审核，不能删除----------");
             throw new MessageSendException(CodeConts.Del_IS_APPROVE,"营销短信状态为审核通过，不能删除");
         }
-        int count = mktsmsSendRecordMapper.selectSendCountBySmsId(smsId);
+        int count = sendRecordMapper.selectSendCountBySmsId(smsId);
         if(count == 0){
             logger.info("----------营销短信发送记录为空，营销短信id:"+smsId+"----------");
             throw new MessageSendException(CodeConts.DATA_IS_NUll,"营销短信发送记录为空，不能删除");
@@ -452,13 +457,13 @@ public class MessageServiceImpl implements MessageService {
         int num=0;
         try {
 
-            num = mktsmsSendRecordMapper.deleteBySmsId(smsId);
+            num = sendRecordMapper.deleteBySmsId(smsId);
 
             //判断短信发送方式
             if(mktsmsMessage.getSendWay() == 2){
                 //录入，修改数据文件为空
                 logger.info("--------删除营销短信发送方式为：2 （录入）----------");
-                int num2 =mktsmsMessageMapper.updateDataFileById("",smsId);
+                int num2 =messageMapper.updateDataFileById("",smsId);
                 logger.info("--------删除营销短信发送记录，修改了"+num2+"条数据----------");
             }
 
@@ -488,7 +493,7 @@ public class MessageServiceImpl implements MessageService {
         logger.info("--------营销短信编辑查询客户组人员，客户组id："+groupId+"，----------营销短信id："+smsId+"----------");
         Map<String,Object> map = new HashMap<>();
         //获取客户组总人数
-        int totalNum = mktsmsCustomerGroupMemberMapper.selectGroupMemberCountByGroupId(groupId);
+        int totalNum = customerMapper.selectGroupMemberCountByGroupId(groupId);
         logger.info("--------营销短信编辑查询客户组人员，一共有："+totalNum+"条记录----------");
 
         int wrongNum = 0;//错误数
@@ -496,7 +501,7 @@ public class MessageServiceImpl implements MessageService {
         int getTotal = 0;
 
         try{
-            List<Customer> mktsmsCustomerGroupMemberList = mktsmsCustomerGroupMemberMapper.selectGroupMemberByGroupId(groupId);
+            List<Customer> mktsmsCustomerGroupMemberList = customerMapper.selectGroupMemberByGroupId(groupId);
 
             int Customers = mktsmsCustomerGroupMemberList.size();
             if(Customers == 0){
@@ -552,7 +557,7 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     public int selectCountByStatus(String status, String createId) {
-        return mktsmsMessageMapper.selectCountByStatus(status,createId);
+        return messageMapper.selectCountByStatus(status,createId);
     }
 
     /**
@@ -601,7 +606,7 @@ public class MessageServiceImpl implements MessageService {
                     sendRecords.add(mktsmsSendRecord);
                 }
 
-                insertNum += mktsmsSendRecordMapper.insertSendRecord(sendRecords);
+                insertNum += sendRecordMapper.insertSendRecord(sendRecords);
 
                 logger.info("--------营销短信编辑（选择）添加发送记录第"+index+"轮，添加了"+insertNum+"条数据----------");
                 if(insertNum != mktsmsSendRecords.size()){

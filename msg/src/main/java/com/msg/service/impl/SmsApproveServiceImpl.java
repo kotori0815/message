@@ -13,7 +13,10 @@ import com.msg.service.SmsApproveService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,13 +25,15 @@ import java.util.Objects;
 /**
  * Created by wd on 2017/10/26.
  */
+@Service("smsApproveService")
+@Transactional
 public class SmsApproveServiceImpl implements SmsApproveService {
     private Logger logger=Logger.getLogger(SmsApproveServiceImpl.class);
-    @Autowired
-    private SendRecordMapper mktsmsSendRecordMapper;
+    @Resource(name="sendRecordMapper")
+    private SendRecordMapper sendRecordMapper;
 
-    @Autowired
-    private MessageMapper mktsmsMessageMapper;
+    @Resource(name="messageMapper")
+    private MessageMapper messageMapper;
 
 //    @Autowired
 //    private SmsSendService smsSendService;
@@ -47,7 +52,7 @@ public class SmsApproveServiceImpl implements SmsApproveService {
     public int insertSmsMessageApprove(Long messageId, String status, String reason, String approveId) {
         logger.info("--------审核营销短信开始----------");
 
-        Message mktsmsMessage = mktsmsMessageMapper.selectByPrimaryKey(messageId);
+        Message mktsmsMessage = messageMapper.selectByPrimaryKey(messageId);
         mktsmsMessage.setStatus(status);
         mktsmsMessage.setReason(reason);
         mktsmsMessage.setApprovalId(approveId);
@@ -57,7 +62,7 @@ public class SmsApproveServiceImpl implements SmsApproveService {
         if (Objects.equals(status, "2")){
             //将营销短信短信发送至短信系统
             int sendMessage=1;
-            List<SendRecord> list = mktsmsSendRecordMapper.selectSendListBySmsId(messageId,mktsmsMessage.getSendWay());
+            List<SendRecord> list = sendRecordMapper.selectSendListBySmsId(messageId,mktsmsMessage.getSendWay());
             Integer size = list.size();
             if (list.size() > 0) {
                 int pointDataLimit = CodeConts.MKTSMS_MESSAGE_NUM;
@@ -88,12 +93,12 @@ public class SmsApproveServiceImpl implements SmsApproveService {
                     }
                 }
             }
-            int total = mktsmsSendRecordMapper.updateSendRecordStatusByMegId(messageId, "1");
+            int total = sendRecordMapper.updateSendRecordStatusByMegId(messageId, "1");
             if (total!=size){
                 throw new MessageSendException(CodeConts.FAILURE,"营销短信发送至短信接口数目出现问题");
             }
         }
-        int update = mktsmsMessageMapper.updateByPrimaryKeySelective(mktsmsMessage);
+        int update = messageMapper.updateByPrimaryKeySelective(mktsmsMessage);
         if (update!=1){
             throw new MessageSendException(CodeConts.FAILURE,"审核营销短信，修改审核结果失败");
         }
@@ -111,7 +116,7 @@ public class SmsApproveServiceImpl implements SmsApproveService {
         logger.info("--------审核人员查看营销短信记录列表开始----------");
 
         PageHelper.startPage(pageStart,pageSize,true,null,true);
-        List<Message> mktsmsMessages = mktsmsMessageMapper.selectMessageApproveList(status,messageId,submitStartTime,submitEndTime,approveStartTime,approveEndTime);
+        List<Message> mktsmsMessages = messageMapper.selectMessageApproveList(status,messageId,submitStartTime,submitEndTime,approveStartTime,approveEndTime);
 
         if (mktsmsMessages==null){
             throw new MessageSendException(CodeConts.LIST_IS_NULL,"审核人员根据条件查询短信记录列表为空");
@@ -145,7 +150,7 @@ public class SmsApproveServiceImpl implements SmsApproveService {
     public Message selectMktsmsmsMessageById(Long messageId) {
         logger.info("--------审核时查看营销短信信息开始----------");
         logger.info("--------查看短信主键：" + messageId + "----------");
-        Message mktsmsMessage = mktsmsMessageMapper.selectByPrimaryKey(messageId);
+        Message mktsmsMessage = messageMapper.selectByPrimaryKey(messageId);
         if (mktsmsMessage==null){
             throw new MessageSendException(CodeConts.MKTSMS_IS_NULL,"审核人员查看短信时，没有以此id为主键的营销短信");
         }
@@ -161,7 +166,7 @@ public class SmsApproveServiceImpl implements SmsApproveService {
      * @return
      */
     private Integer sendMktsmsmsMessage(Long messageId, List<SendRecord> list){
-        Message mktsmsMessage = mktsmsMessageMapper.selectByPrimaryKey(messageId);
+        Message mktsmsMessage = messageMapper.selectByPrimaryKey(messageId);
         String phone="";
         StringBuffer phones=new StringBuffer();
         for (SendRecord record : list) {

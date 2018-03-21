@@ -1,9 +1,9 @@
 package com.msg.util;
 
-import com.mktsms.common.CodeConts;
-import com.mktsms.ecpection.MktsmsSendException;
-import com.mktsms.entity.MktsmsSendRecord;
-import com.mktsms.vo.MktsmsImportMemberVO;
+import com.msg.common.CodeConts;
+import com.msg.entity.SendRecord;
+import com.msg.exception.MessageSendException;
+import com.msg.vo.SmsImportCustomerVO;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -33,9 +33,9 @@ public class FileParse {
      * @param
      * @return
      */
-    public static List<MktsmsSendRecord> smsFileParse(InputStream inputStream, String excelFileName) throws IOException {
-        List<MktsmsSendRecord> list = new ArrayList<>();
-        MktsmsImportMemberVO vo = new MktsmsImportMemberVO();
+    public static List<SendRecord> smsFileParse(InputStream inputStream, String excelFileName) throws IOException {
+        List<SendRecord> list = new ArrayList<>();
+        SmsImportCustomerVO vo = new SmsImportCustomerVO();
         //FileInputStream inputStream = new FileInputStream(file);
         try {
             //创建工作簿
@@ -57,19 +57,19 @@ public class FileParse {
                 cell.setCellType(Cell.CELL_TYPE_STRING);
                 String value = null == cell.getStringCellValue() ? "" : cell.getStringCellValue();
                 if (i==0&&!("客户编号".equals(value))){
-                    throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
+                    throw new MessageSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
                 }
                 if (i==1&&!("客户姓名".equals(value))){
-                    throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
+                    throw new MessageSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
                 }
                 if (i==2&&!("客户类型".equals(value))){
-                    throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
+                    throw new MessageSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
                 }
                 if (i==3&&!("手机号".equals(value))){
-                    throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
+                    throw new MessageSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
                 }
                 if (i==4&&!("性别".equals(value))){
-                    throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
+                    throw new MessageSendException(CodeConts.PARAM_LEGAL,"模板不正确，请使用默认模板");
                 }
 
             }
@@ -89,7 +89,7 @@ public class FileParse {
                     }
                     cell2.setCellType(Cell.CELL_TYPE_STRING);
                     if (cell2.getStringCellValue()==null|| Objects.equals(cell2.getStringCellValue(), "")){
-                        throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"手机号码为必填字段，请输入后重试");
+                        throw new MessageSendException(CodeConts.PARAM_LEGAL,"手机号码为必填字段，请输入后重试");
                     }
 
                     for (int index=0;index<fields.length;index++){
@@ -112,14 +112,14 @@ public class FileParse {
                         setMethod.invoke(vo, new Object[]{value});
                     }
                     if (isHasValues(vo)) {//判断对象属性是否有值
-                        MktsmsSendRecord mktsmsSendRecord =voConventToRecord(vo);
+                        SendRecord mktsmsSendRecord =voConventToRecord(vo);
                         list.add(mktsmsSendRecord);
                         vo.getClass().getConstructor(new Class[]{}).newInstance(new Object[]{});//重新创建一个vo对象
                     }
                 }
             }
         }catch (Exception e){
-           throw new MktsmsSendException(CodeConts.FAILURE,e.getMessage());
+           throw new MessageSendException(CodeConts.FAILURE,e.getMessage());
         }
         finally {
             inputStream.close();
@@ -230,7 +230,7 @@ public class FileParse {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-               throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"对象属性非空判断出现问题");
+               throw new MessageSendException(CodeConts.PARAM_LEGAL,"对象属性非空判断出现问题");
             }
 
         }
@@ -244,19 +244,19 @@ public class FileParse {
      * @param vo
      * @return
      */
-    private static MktsmsSendRecord voConventToRecord(MktsmsImportMemberVO vo) {
-        MktsmsSendRecord mktsmsSendRecord = new MktsmsSendRecord();
+    private static SendRecord voConventToRecord(SmsImportCustomerVO vo) {
+        SendRecord mktsmsSendRecord = new SendRecord();
         try {
             if(vo.getCustCode()!=null&&vo.getCustCode()!=""){
                 boolean numeric = isNumeric(vo.getCustCode());
                 if (!numeric){
-                    throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"文件内容或格式不符");
+                    throw new MessageSendException(CodeConts.PARAM_LEGAL,"文件内容或格式不符");
                 }
                 mktsmsSendRecord.setCustCode(Long.valueOf(vo.getCustCode()));
             }
         } catch (NumberFormatException e) {
             e.printStackTrace();
-            throw new MktsmsSendException(CodeConts.PARAM_LEGAL,"文件内容或格式不符");
+            throw new MessageSendException(CodeConts.PARAM_LEGAL,"文件内容或格式不符");
         }
 
         if (vo.getCustName()!=null){
@@ -278,7 +278,7 @@ public class FileParse {
             case "":
                 break;
             default:
-                throw new MktsmsSendException(CodeConts.PARAM_LEGAL, "文件内容或格式不符");
+                throw new MessageSendException(CodeConts.PARAM_LEGAL, "文件内容或格式不符");
         }
 
         switch (vo.getSex()) {
@@ -293,7 +293,7 @@ public class FileParse {
             case "":
                 break;
             default:
-                throw new MktsmsSendException(CodeConts.PARAM_LEGAL, "文件内容或格式不符");
+                throw new MessageSendException(CodeConts.PARAM_LEGAL, "文件内容或格式不符");
         }
         return mktsmsSendRecord;
     }

@@ -6,6 +6,7 @@ import com.msg.entity.Message;
 import com.msg.entity.SendRecord;
 import com.msg.exception.MessageSendException;
 import com.msg.service.SmsSendService;
+import com.msg.util.FileParse;
 import com.msg.util.PhoneNumUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -137,7 +138,7 @@ public class SmsSendController {
             int unique=0;
             int size = list.size();
             if(size == 0){
-                throw new MktsmsBaseDataEcpection(CodeConts.FAILURE,"客户成员不能为空");
+                throw new MessageSendException(CodeConts.FAILURE,"客户成员不能为空");
             }
             list = (List<SendRecord>) PhoneNumUtil.removeWrongPhones(list);
             right=size-list.size();
@@ -158,78 +159,47 @@ public class SmsSendController {
 
 
 
-            Integer integer = mktSmsSendService.insertMktsmsSendRecordList(list,mktsmsMessage1.getId());
+            Integer integer = mktSmsSendService.insertMktsmsSendRecordList(list,mktsmsMessage.getId());
             if (integer!=list.size()){
                 logger.info("--------解析条数:"+list.size()+"----------添加条数:"+integer+"--------");
-                return Tool.resultMap(CodeConts.NUMBER_NOT_EQUAL,"集合长度与发送记录的条数不符");
+//                return Tool.resultMap(CodeConts.NUMBER_NOT_EQUAL,"集合长度与发送记录的条数不符");
             }
 
             if (list.size()==0){
                 throw new MessageSendException(CodeConts.LIST_IS_NULL,"过滤错误号码及重复号码后，客户组列表为空");
             }
-            mktsmsMessage1.setPhoneNum(integer);
-            mktsmsMessage1.setCreateId(createrId);
-            mktsmsMessage1.setCreateTime(new Date());
-            insert = mktSmsSendService.smsFileCreate(mktsmsMessage1);
+            mktsmsMessage.setPhoneNum(integer);
+//            mktsmsMessage.setCreateId(createrId);
+            mktsmsMessage.setCreateTime(new Date());
+            insert = mktSmsSendService.smsFileCreate(mktsmsMessage);
             if (insert!=1){
-                return Tool.resultMap(CodeConts.FAILURE,"上传文件发送营销短信方式，创建/发送失败");
+//                return Tool.resultMap(CodeConts.FAILURE,"上传文件发送营销短信方式，创建/发送失败");
             }
             map.put("result",insert);
             map.put("status","0000");
-            if (Objects.equals(mktsmsMessage1.getStatus(), "1")){
+            if (Objects.equals(mktsmsMessage.getStatus(), "1")){
                 map.put("message","上传文件发送营销短信方式,保存成功");
-            }else if (Objects.equals(mktsmsMessage1.getStatus(), "2")){
+            }else if (Objects.equals(mktsmsMessage.getStatus(), "2")){
                 map.put("message","上传文件发送营销短信方式,提交成功");
             }
 
         } catch (MessageSendException e) {
-            return Tool.resultMap(e.getErrorCode(),e.getMessage());
+//            return Tool.resultMap(e.getErrorCode(),e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            return Tool.resultMap(CodeConts.FAILURE,e.getMessage());
+//            return Tool.resultMap(CodeConts.FAILURE,e.getMessage());
         }
         logger.info("--------上传文件发送营销短信方式创建/发送结束----------");
         return map;
     }
 
-    @ResponseBody
-    @RequestMapping("/selectSignList")
-    @ApiOperation(httpMethod = "POST", value = "短信创建获取短信签名列表")
-    public Map<String, Object> mktsmsSignList() {
-        logger.info("--------短信创建获取短信签名列表开始----------");
-        Map<String,Object> map=null;
-        try {
-            map=new HashMap<>();
-            List<MktsmsSign> mktsmsSigns = mktSmsSendService.selectSmsSign();
-            if(mktsmsSigns.isEmpty() && mktsmsSigns.size() == 0){
-                logger.info("---------------selectMktsmsSignList() 获取短信签名,数据为空，方法结束--------------------------");
-                return Tool.resultMap(CodeConts.DATA_IS_NUll, "短信签名列表为空");
-            }
-            List<Option> signs=new ArrayList<>();
-            for (MktsmsSign mktsmsSign : mktsmsSigns) {
-                Option option = new Option();
-                option.setId(String.valueOf(mktsmsSign.getId()));
-                option.setName(mktsmsSign.getSign());
-                signs.add(option);
-            }
-            map.put("options",signs);
-            map.put("result",mktsmsSigns);
-            map.put("status","0000");
-            map.put("message","短信创建获取短信签名列表成功");
-
-        } catch (MessageSendException e) {
-            return Tool.resultMap(e.getErrorCode(),e.getMessage());
-        }
-        logger.info("--------短信创建获取短信签名列表结束----------");
-        return map;
-    }
 
     @RequestMapping("/downloadModel")
     @ResponseBody
     @ApiOperation(httpMethod = "GET", value = "导出模板文件")
     public void modelFileDownLoad(HttpServletResponse response,HttpServletRequest request) throws IOException {
 
-        String path =MktsmsSendController.class.getClassLoader().getResource("../../").getPath();
+        String path =SmsSendController.class.getClassLoader().getResource("../../").getPath();
         FileInputStream fis =new FileInputStream(new File(path+"/template/营销短信客户清单模板.xls"));
         BufferedInputStream inputStream = new BufferedInputStream(fis);
         String fileName = "营销短信客户清单模板.xls";
