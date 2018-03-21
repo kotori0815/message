@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msg.mapper.UserMapper">
+    
+    <resultMap id="um" type="com.msg.entity.User" autoMapping="true">
+        <id property="userId" column="userId"/>
+    </resultMap>
+    
+	<select id="selectUser" resultMap="um">
+      SELECT userId, realname, faName, email, mobile, password, sex, addr, img img, sign, status, salt, regTime, lastlogTime, from user WHERE userId=#{userId}
+    </select>
+
+
+    <update id="updateUser">
+       UPDATE user SET  status=#{status}   WHERE userId=#{userId};
+    </update>
+    <select id="selectUsers" resultMap="um">
+        SELECT userId, realname, faName, email, mobile, password, sex, addr, img img, sign, status, salt, regTime, lastlogTime from user limit #{firstRow},#{pageSize}
+    </select>
+    <select id="selectTotal" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM user
+    </select>
+
+    <select id="findUserByCondition" resultType="User">
+        SELECT ${condition} FROM user
+    </select>
+<!--,-->
+    <insert id="insertUsers">
+        INSERT INTO user VALUES
+        <foreach collection="list" separator=","  item="user">
+            (#{user.userId}, #{user.realname}, #{user.faName} ,#{user.email},#{user.mobile}, #{user.password}, #{user.sex}, #{user.addr}, #{user.img}, #{user.sign}, #{user.status},#{user.salt},#{user.regTime}, #{user.lastlogTime} )
+        </foreach>
+    </insert>
+
+
+    <select id="selectManUser" resultType="User">
+        select sex,count(sex) count,addr from user where sex='m' group by addr;
+    </select>
+
+    <select id="selectWomanUser" resultType="User">
+        select sex,count(sex) count,addr from user where sex='f' group by addr;
+    </select>
+
+</mapper>

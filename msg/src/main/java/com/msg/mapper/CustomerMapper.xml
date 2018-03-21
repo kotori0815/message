@@ -49,7 +49,7 @@
     delete from mktsms_cust_group_members
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.mktsms.entity.MktsmsCustomerGroupMember" >
+  <insert id="insert" parameterType="com.msg.entity.Customer" >
     insert into mktsms_cust_group_members (id, cust_group, cust_code,
       cust_type, cust_name, phone,
       sex, source, create_id,
@@ -59,7 +59,7 @@
       #{sex,jdbcType=TINYINT}, #{source,jdbcType=INTEGER}, #{createId,jdbcType=VARCHAR},
       #{createTime,jdbcType=TIMESTAMP}, #{valid,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" parameterType="com.mktsms.entity.MktsmsCustomerGroupMember" >
+  <insert id="insertSelective" parameterType="com.msg.entity.Customer" >
     insert into mktsms_cust_group_members
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -138,7 +138,7 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.mktsms.entity.MktsmsCustomerGroupMember" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.Customer" >
     update mktsms_cust_group_members
     <set >
       <if test="custGroup != null" >
@@ -177,7 +177,7 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.mktsms.entity.MktsmsCustomerGroupMember" >
+  <update id="updateByPrimaryKey" parameterType="com.msg.entity.Customer" >
     update mktsms_cust_group_members
     set cust_group = #{custGroup,jdbcType=BIGINT},
       cust_code = #{custCode,jdbcType=BIGINT},

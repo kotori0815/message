@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msg.mapper.AdminMapper">
+    <resultMap id="ad" type="com.msg.entity.Admin" autoMapping="true">
+        <id property="adminId" column="admin_id"/>
+        <result property="adminName" column="admin_name"/>
+    </resultMap>
+
+	<select id="selectAdmin" resultMap="ad">
+        select admin_id, realname, admin_name, password, salt FROM admin WHERE admin_name=#{adminName}
+    </select>
+    <insert id="insertAdmin">
+        INSERT INTO admin VALUES (#{adminId}, #{realname}, #{adminName}, #{password}, #{salt});
+    </insert>
+    <delete id="deleteAdmin">
+        delete from admin WHERE admin_id=#{adminId}
+    </delete>
+     <update id="updateAdmin">
+        UPDATE t_user SET  realname=#{realname}, admin_name=#{adminName}, password=#{password}, salt=#{salt} WHERE adminId=#{adminId}
+    </update>
+
+
+</mapper>

@@ -102,7 +102,7 @@
     update cust_group set valid = 1
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <insert id="insert" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+  <insert id="insert" parameterType="com.msg.entity.CustomerGroup" >
     insert into cust_group (id, name, type,
       status, memo, create_id, 
       create_time, modify_id, modify_time, 
@@ -112,7 +112,7 @@
       #{createTime,jdbcType=TIMESTAMP}, #{modifyId,jdbcType=VARCHAR}, #{modifyTime,jdbcType=TIMESTAMP}, 
       #{valid,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+  <insert id="insertSelective" parameterType="com.msg.entity.CustomerGroup" >
     insert into cust_group
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -179,7 +179,7 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.CustomerGroup" >
     update cust_group
     <set >
       <if test="name != null" >
@@ -210,7 +210,7 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.mktsms.entity.MktsmsCustomerGroup" >
+  <update id="updateByPrimaryKey" parameterType="com.msg.entity.CustomerGroup" >
     update cust_group
     set name = #{name,jdbcType=VARCHAR},
       type = #{type,jdbcType=INTEGER},

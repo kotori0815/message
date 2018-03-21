@@ -70,7 +70,7 @@
     delete from message
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" parameterType="com.msg.entity.MktsmsMessage" >
+  <insert id="insert" parameterType="com.msg.entity.Message" >
     insert into message (id, sign, status,
       send_way, cust_group, data_file, 
       phone_num, memo, create_id, 
@@ -84,7 +84,7 @@
       #{approvalId,jdbcType=VARCHAR}, #{approvalTime,jdbcType=TIMESTAMP}, #{reason,jdbcType=VARCHAR}, 
       #{content,jdbcType=LONGVARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.msg.entity.MktsmsMessage" >
+  <insert id="insertSelective" parameterType="com.msg.entity.Message" >
     insert into message
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -185,7 +185,7 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.MktsmsMessage" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.Message" >
     update message
     <set >
       <if test="sign != null" >
@@ -236,7 +236,7 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.msg.entity.MktsmsMessage" >
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.msg.entity.Message" >
     update message
     set sign = #{sign,jdbcType=BIGINT},
       status = #{status,jdbcType=VARCHAR},
@@ -255,7 +255,7 @@
       content = #{content,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.msg.entity.MktsmsMessage" >
+  <update id="updateByPrimaryKey" parameterType="com.msg.entity.Message" >
     update message
     set sign = #{sign,jdbcType=BIGINT},
       status = #{status,jdbcType=VARCHAR},
