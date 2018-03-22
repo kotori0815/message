@@ -15,9 +15,24 @@
     from customer_group_relation
     where id = #{id,jdbcType=BIGINT}
   </select>
+  <select id="selectCustomerByGroupId" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    WHERE group_id=#{groupId,jdbcType=BIGINT}
+  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from customer_group_relation
     where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <delete id="deleteRelationByGroupId">
+        delete from customer_group_relation
+    where customer_id =#{customerId,jdbcType=BIGINT}
+    </delete>
+  <delete id="deleteCustomerGroupPunch">
+ delete from customer_group_relation
+ WHERE  id IN
+    (<foreach collection="list" item="record" separator=",">
+    #{record.id}
+  </foreach>)
   </delete>
   <insert id="insert" parameterType="com.msg.entity.CustomerGroupRelation" >
     insert into customer_group_relation (id, customer_id, group_id
@@ -49,6 +64,18 @@
         #{groupId,jdbcType=BIGINT},
       </if>
     </trim>
+  </insert>
+  <insert id="insertCustomerGroupPunch">
+    insert into customer_group_relation (id, customer_id, group_id
+    )
+      VALUES
+      <foreach collection="list" item="record" separator=",">
+        (
+        #{record.id},
+        #{record.customerId},
+        #{record.groupId}
+        )
+      </foreach>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.msg.entity.CustomerGroupRelation" >
     update customer_group_relation
