@@ -478,6 +478,19 @@
       <version>${springfox.swagger.version}</version>
     </dependency>
     <!-- swagger-springmvc end -->
+
+    <!-- swagger-mvc -->
+    <dependency>
+      <groupId>com.mangofactory</groupId>
+      <artifactId>swagger-springmvc</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.6.6</version>
+    </dependency>
+    <!-- swagger-mvc -->
     <!--验证码-->
     <dependency>
       <groupId>validate.com.baizhi</groupId>
@@ -505,6 +518,11 @@
           <artifactId>lombok</artifactId>
           <version>1.16.8</version>
       </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>4.3.12.RELEASE</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

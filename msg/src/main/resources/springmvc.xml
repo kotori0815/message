@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
         <!--注解扫描-->
-    <context:component-scan base-package="com.msg.controller"/>
+    <!--注解控测器 设置使用注解的类所在的jar包 -->
+    <context:component-scan base-package="com.msg">
+        <!-- 必须使service层在control之前被扫描，否则control中装载的service不包含事务增强 -->
+        <!-- 扫描所有的controller 但是不扫描service -->
+        <context:include-filter type="annotation"
+                                expression="org.springframework.stereotype.Controller" />
+        <context:exclude-filter type="annotation"
+                                expression="org.springframework.stereotype.Service" />
+    </context:component-scan>
         <!--json适配器-->
         <mvc:annotation-driven>
             <mvc:message-converters>
@@ -23,11 +31,64 @@
         <!--静态资源加载-->
         <mvc:default-servlet-handler/>
 
+    <bean id="contentNegotiationManager"
+          class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+        <property name="favorParameter" value="false" />
+        <!-- 设置为true以忽略对Accept Header的支持 -->
+        <property name="ignoreAcceptHeader" value="true" />
+
+        <!-- 在没有扩展名时即: "/blog/1" 时的默认展现形式 -->
+        <property name="defaultContentType" value="text/html" />
+
+        <!-- 扩展名至mimeType的映射,即 /blog.json => application/json -->
+        <property name="mediaTypes">
+            <map>
+                <entry key="html" value="text/html" />
+                <entry key="json" value="application/json" />
+
+                <!-- 后续需要支持这些格式，再放开 <entry key="pdf" value="application/pdf" /> <entry
+                    key="xsl" value="application/vnd.ms-excel" /> <entry key="xml" value="application/xml"
+                    /> -->
+            </map>
+        </property>
+    </bean>
+
         <!--视图解析器-->
-        <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-            <property name="suffix" value=".jsp"></property>
-            <property name="prefix" value="/"></property>
-        </bean>
+    <bean
+            class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <property name="order" value="1" />
+        <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+
+        <property name="viewResolvers">
+            <list>
+                <bean
+                        class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                    <property name="viewClass"
+                              value="org.springframework.web.servlet.view.JstlView" />
+                    <property name="prefix" value="/" />
+                    <property name="suffix" value=".html" />
+                </bean>
+            </list>
+        </property>
+
+        <property name="defaultViews">
+            <list>
+                <!-- application/json ModelAndView里的数据变成JSON -->
+                <bean
+                        class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
+                <!-- application/xml -->
+                <!-- <bean class="org.springframework.web.servlet.view.xml.MarshallingView">
+                    <property name="marshaller"> <bean class="org.springframework.oxm.xstream.XStreamMarshaller">
+                    </bean> </property> </bean> -->
+            </list>
+        </property>
+    </bean>
+
+    <!-- swagger配置信息 -->
+    <bean class="com.msg.base.Swagger.MsgSwaggerConfig" />
+    <!--重要！配置swagger资源不被拦截-->
+    <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/" />
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/" />
 
         <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         </bean>

@@ -2,7 +2,7 @@ package com.msg.controller;
 
 
 
-import cn.dsna.util.images.ValidateCode;
+//import cn.dsna.util.images.ValidateCode;
 import com.msg.entity.Admin;
 import com.msg.service.AdminService;
 import org.springframework.stereotype.Controller;
@@ -59,13 +59,13 @@ public class AdminController {
         return msg;
     }
 
-    @RequestMapping("/validate")
-    public void validate(HttpServletResponse response, HttpSession session) throws IOException {
-        ValidateCode validateCode = new ValidateCode(200, 40, 4, 10);
-        String code = validateCode.getCode().toLowerCase();
-        session.setAttribute("code", code);
-        validateCode.write(response.getOutputStream());
-    }
+//    @RequestMapping("/validate")
+//    public void validate(HttpServletResponse response, HttpSession session) throws IOException {
+//        ValidateCode validateCode = new ValidateCode(200, 40, 4, 10);
+//        String code = validateCode.getCode().toLowerCase();
+//        session.setAttribute("code", code);
+//        validateCode.write(response.getOutputStream());
+//    }
 
 
 

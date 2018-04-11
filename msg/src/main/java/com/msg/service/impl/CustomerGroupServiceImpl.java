@@ -1,5 +1,6 @@
 package com.msg.service.impl;
 
+import com.msg.entity.Customer;
 import com.msg.entity.CustomerGroup;
 import com.msg.mapper.CustomerGroupMapper;
 import com.msg.service.CustomerGroupService;
@@ -42,5 +43,15 @@ public class CustomerGroupServiceImpl implements CustomerGroupService {
     @Override
     public List<CustomerGroup> selectCustomerGroupListSelective() {
         return customerGroupMapper.SelectGroupList();
+    }
+
+    @Override
+    public Integer insertCustomersToGroup(Long custGroupId, List<Customer> customers) {
+        return null;
+    }
+
+    @Override
+    public Integer deleteCustomersToGroup(Long custGroupId, List<Customer> customers) {
+        return null;
     }
 }
