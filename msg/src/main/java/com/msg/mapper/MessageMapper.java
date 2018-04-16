@@ -2,10 +2,11 @@ package com.msg.mapper;
 
 import com.msg.entity.Message;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
-
+@Repository
 public interface MessageMapper {
     int deleteByPrimaryKey(Long id);
 

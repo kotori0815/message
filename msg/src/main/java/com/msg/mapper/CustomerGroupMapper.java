@@ -3,9 +3,10 @@ package com.msg.mapper;
 import com.msg.entity.CustomerGroup;
 
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+@Repository
 public interface CustomerGroupMapper {
     int deleteByPrimaryKey(Long id);
 

@@ -3,9 +3,10 @@ package com.msg.mapper;
 
 import com.msg.entity.Customer;
 import com.msg.entity.CustomerGroupRelation;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+@Repository
 public interface CustomerGroupRelationMapper {
     int deleteByPrimaryKey(Long id);
 

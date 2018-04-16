@@ -4,12 +4,14 @@ package com.msg.mapper;
 import com.msg.entity.User;
 import com.msg.util.Page;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * Created by wd199 on 2017/6/16.
  */
+@Repository
 public interface UserMapper {
     public int updateUser(User user);
     public User selectUser(String userId);
