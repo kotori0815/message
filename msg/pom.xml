@@ -479,12 +479,12 @@
     </dependency>
     <!-- swagger-springmvc end -->
 
-    <!-- swagger-mvc -->
-    <dependency>
-      <groupId>com.mangofactory</groupId>
-      <artifactId>swagger-springmvc</artifactId>
-      <version>1.0.2</version>
-    </dependency>
+    <!--&lt;!&ndash; swagger-mvc &ndash;&gt;-->
+    <!--<dependency>-->
+      <!--<groupId>com.mangofactory</groupId>-->
+      <!--<artifactId>swagger-springmvc</artifactId>-->
+      <!--<version>1.0.2</version>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>

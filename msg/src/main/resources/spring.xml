@@ -10,7 +10,7 @@
     <!--过滤器工厂-->
 
     <!--注解扫描-->
-        <context:component-scan base-package="com.msg.servcieImpl"/>
+        <context:component-scan base-package="com.msg.service"/>
         <!--小配置文件-->
         <context:property-placeholder location="classpath:db.properties"/>
         <!--数据源-->

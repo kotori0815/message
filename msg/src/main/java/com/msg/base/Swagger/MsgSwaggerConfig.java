@@ -3,6 +3,8 @@ package com.msg.base.Swagger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -22,9 +24,10 @@ import java.util.List;
 /**
  * Created by wd on 2018/4/10.
  */
-//@WebAppConfiguration
-@EnableWebMvc // 如果没加这个会报错
-@EnableSwagger2 // 启用Swagger2
+@Configuration //必须存在
+@EnableSwagger2 //必须存在
+@EnableWebMvc //必须存在
+@ComponentScan(basePackages = {"com.msg.controller"})
 public class MsgSwaggerConfig extends WebMvcConfigurerAdapter{
     /**
      *
